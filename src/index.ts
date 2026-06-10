@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import http from 'http';
 import { webhookRouter } from './whatsapp/webhook';
 import { startOcppServer } from './ocpp/server';
+import { startAll as startSimulators } from './simulator';
 import { prisma } from './db/prisma';
 
 dotenv.config();
@@ -30,6 +31,8 @@ async function start() {
     // Start listening on a single port
     server.listen(PORT, () => {
       console.log(`Backend & OCPP Server listening on port ${PORT}`);
+      // Launch internal simulators so they run in the cloud automatically
+      startSimulators().catch(console.error);
     });
 
   } catch (err) {

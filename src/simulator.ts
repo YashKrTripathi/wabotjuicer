@@ -3,8 +3,9 @@ import { RPCClient } from 'ocpp-rpc';
 async function startSimulator(chargerId: string) {
   console.log(`[Simulator] Starting charger ${chargerId}...`);
 
+  const PORT = process.env.PORT || '3000';
   const client = new RPCClient({
-    endpoint: `ws://127.0.0.1:3000`,
+    endpoint: `ws://127.0.0.1:${PORT}`,
     identity: chargerId,
     protocols: ['ocpp1.6'],
     strictMode: false,
@@ -103,10 +104,8 @@ async function startSimulator(chargerId: string) {
   }, 60000);
 }
 
-async function startAll() {
+export async function startAll() {
   await startSimulator('CHARGER_001');
   await startSimulator('CHARGER_002');
   await startSimulator('CHARGER_003');
 }
-
-startAll().catch(console.error);
