@@ -8,11 +8,13 @@ let server: any;
 
 export async function startOcppServer(httpServer: any) {
   server = new RPCServer({
-    wssOptions: { server: httpServer },
     protocols: ['ocpp1.6'],
     strictMode: false,
     callConcurrency: 4,
   });
+
+  // Attach the OCPP upgrade handler to the existing HTTP server
+  httpServer.on('upgrade', server.handleUpgrade);
 
   server.auth(async (accept: any, reject: any, handshake: any) => {
     const identity = handshake.identity;
