@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id             Int               @id @default(autoincrement())
+  phone          String            @unique
+  vehicle_number String?
+  created_at     DateTime          @default(now())
+  requests       ChargingRequest[]
+}
+
+model Charger {
+  id               Int               @id @default(autoincrement())
+  identity         String            @unique
+  vendor           String?
+  model            String?
+  status           String            @default("AVAILABLE") // AVAILABLE, PREPARING, CHARGING, UNAVAILABLE
+  updated_at       DateTime          @updatedAt
+  chargingSessions ChargingSession[]
+  chargingRequests ChargingRequest[]
+  ocppMessages     OcppMessage[]
+}
+
+model ChargingRequest {
+  id             Int               @id @default(autoincrement())
+  customer_id    Int
+  vehicle_number String
+  status         String            @default("PENDING") // VEHICLE_PENDING, PAYMENT_PENDING, STARTED, COMPLETED, FAILED
+  amount_paid    Float?
+  energy_limit   Float?
+  created_at     DateTime          @default(now())
+  customer       Customer          @relation(fields: [customer_id], references: [id])
+  charger_id     Int?
+  charger        Charger?          @relation(fields: [charger_id], references: [id])
+  session        ChargingSession?
+}
+
+model ChargingSession {
+  id             Int               @id @default(autoincrement())
+  request_id     Int?              @unique
+  charger_id     Int
+  transaction_id Int?              @unique
+  status         String            @default("STARTED") // STARTED, STOPPED
+  meter_start    Float             @default(0)
+  meter_stop     Float?
+  created_at     DateTime          @default(now())
+  updated_at     DateTime          @updatedAt
+  request        ChargingRequest?  @relation(fields: [request_id], references: [id])
+  charger        Charger           @relation(fields: [charger_id], references: [id])
+  meterValues    MeterValue[]
+}
+
+model MeterValue {
+  id         Int             @id @default(autoincrement())
+  session_id Int
+  value      Float
+  timestamp  DateTime        @default(now())
+  session    ChargingSession @relation(fields: [session_id], references: [id])
+}
+
+model OcppMessage {
+  id         Int      @id @default(autoincrement())
+  charger_id Int?
+  direction  String   // INBOUND, OUTBOUND
+  action     String
+  payload    Json
+  created_at DateTime @default(now())
+  charger    Charger? @relation(fields: [charger_id], references: [id])
+}
+
+model WhatsappMessage {
+  id         Int      @id @default(autoincrement())
+  phone      String
+  direction  String   // INBOUND, OUTBOUND
+  content    String
+  created_at DateTime @default(now())
+}
