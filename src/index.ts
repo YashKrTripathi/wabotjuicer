@@ -14,6 +14,11 @@ app.use(express.json());
 // WhatsApp Webhook endpoint
 app.use('/webhook', webhookRouter);
 
+// Health check / ping endpoint to keep Render awake
+app.get('/ping', (req, res) => {
+  res.status(200).send('pong');
+});
+
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
 async function start() {
